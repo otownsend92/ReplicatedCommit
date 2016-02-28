@@ -8,10 +8,6 @@
 import java.util.*;
 
 public class Lock {
-    private final int UNLOCKED = 0;
-    private final int READ = 1;
-    private final int WRITE = 2;
-
 	private int lockStatus;	
 	private List<String> clientIp; //the client holding the lock
 
