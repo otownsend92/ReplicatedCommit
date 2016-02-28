@@ -5,7 +5,9 @@
 		1 - read lock (shared)
 		2 - write lock (exclusive)
 */
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Lock {
 	private int lockStatus;	
