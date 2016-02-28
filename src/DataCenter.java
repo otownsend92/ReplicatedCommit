@@ -96,7 +96,57 @@ public class DataCenter extends Thread {
 		
 		// Parse incoming string from client socket
 		public void processInput(String input) {
+			String[] recvMsg = input.split(" ");
 			
+			if (recvMsg[0].equals("accept")) {
+				// New accept request from client
+				// Begin 2 Phase Commit
+				String ipAddr = recvMsg[1];
+				String txn = recvMsg[2];
+				
+				// Start 2PC
+				/*
+				boolean xGood = shardX.processTransaction(txn);
+				boolean YGood = shardY.processTransaction(txn);
+				boolean ZGood = shardZ.processTransaction(txn);
+				
+				if (xGood && yGood && zGood) {
+					// All shards agreed and there are no conflicting locks
+					// Move forward with transaction and inform other DCs 
+					// that you accept the Paxos request
+					notifyDCs(txn);
+				}
+				
+				else {
+					// One of the shards found a lock conflict and rejected the request
+					// TODO: Respond to client? 
+				}
+				*/
+				
+			}
+			
+			else if (recvMsg[0].equals("yes")) {
+				// The DC that sent this message is accepting 
+				// the attached transaction. Check 
+			}
+		}
+		
+		public void notifyDCs(String txn) {
+			/*
+			for(int i = 0; i < 5; i++){
+				try{
+				Socket s = new Socket(Main.siteIpAddresses.get(i), Globals.sitePorts.get(i));
+				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
+
+				socketOut.println(msg);
+				
+				socketOut.close();
+				s.close();
+				}
+				catch (IOException e){
+					// Try the next one.
+				}
+			} */
 		}
 		
 	}
