@@ -11,17 +11,24 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 
 public class DataCenter extends Thread {
 
 	private ServerSocket serverSocket;
+	private Map<String, Integer> pendingTxns = 
+			Collections.synchronizedMap(new HashMap<String, Integer>());
 	
 	// Class items that will come in later with other commits
-//	Shard x = new Shard();
-//	Shard y = new Shard();
-//	Shard x = new Shard();
+	Shard shardX = new Shard();
+	Shard shardY = new Shard();
+	Shard shardZ = new Shard();
 	
 	// Possibly remove later 
 	int port = 3000;
@@ -99,37 +106,79 @@ public class DataCenter extends Thread {
 		 */
 		private void processInput(String input) {
 			String[] recvMsg = input.split(" ");
+			String ipAddr = recvMsg[1];
+			String txn = recvMsg[2];
 			
 			if (recvMsg[0].equals("accept")) {
 				// New accept request from client
 				// Begin 2 Phase Commit
-				String ipAddr = recvMsg[1];
-				String txn = recvMsg[2];
+				addPendingTxn(txn);
 				
 				// Start 2PC
-				/*
 				boolean xGood = shardX.processTransaction(txn);
-				boolean YGood = shardY.processTransaction(txn);
-				boolean ZGood = shardZ.processTransaction(txn);
+				boolean yGood = shardY.processTransaction(txn);
+				boolean zGood = shardZ.processTransaction(txn);
 				
 				if (xGood && yGood && zGood) {
 					// All shards agreed and there are no conflicting locks
 					// Move forward with transaction and inform other DCs 
 					// that you accept the Paxos request
-					notifyDCs(txn);
+					notifyDCs(true, txn);
 				}
 				
 				else {
 					// One of the shards found a lock conflict and rejected the request
 					// TODO: Respond to client? 
+					notifyDCs(false, txn);
 				}
-				*/
+				
 				
 			}
 			
 			else if (recvMsg[0].equals("yes")) {
 				// The DC that sent this message is accepting 
-				// the attached transaction. Check 
+				// the attached transaction. Check pendingTxns
+				
+				synchronized(pendingTxns) {
+					if(pendingTxns.containsKey(txn)) {
+						incrementTxnQuorum(txn);
+						checkQuorumAndCommit(txn);
+					}
+					else {
+						addPendingTxn(txn);
+					}
+				}
+			}
+		}
+		
+		
+		/*
+		 * Add this new incoming txn to pendingTxns
+		 */
+		private synchronized void addPendingTxn(String txn) {
+			pendingTxns.put(txn, 0);
+		}
+		
+		/*
+		 * This txn is finished. Remove it from pendingTxns
+		 */
+		private synchronized void removePendingTxn(String txn) {
+			pendingTxns.remove(txn);
+		}
+		
+		/*
+		 * Increment txn quorum counter
+		 */
+		private synchronized void incrementTxnQuorum(String txn) {
+			pendingTxns.put(txn, pendingTxns.get(txn)+1);
+		}
+		
+		/*
+		 * Check quorum for this txn. If = 3, commit txn
+		 */
+		private synchronized void checkQuorumAndCommit(String txn) {
+			if(pendingTxns.get(txn) == 3) {
+				// TODO: Accept txn
 			}
 		}
 		
@@ -162,7 +211,6 @@ public class DataCenter extends Thread {
 				}
 			} */
 		}
-		
 	}
 	
 }
