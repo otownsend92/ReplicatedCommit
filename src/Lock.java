@@ -18,22 +18,22 @@ public class Lock {
         clientIp = new ArrayList<String>();
 	}
 
-	public void setLockStatus(int i) {
+	public synchronized void setLockStatus(int i) {
 		if(i >= 0 && i <= 2)
 			lockStatus = i;
 	}
 
-	public int getLockStatus() { return lockStatus; }
+	public synchronized int getLockStatus() { return lockStatus; }
 
-	public void addClientIp(String c) { clientIp.add(c); }
+	public synchronized void addClientIp(String c) { clientIp.add(c); }
 
-    public boolean removeClientIp(String c) {
+    public synchronized boolean removeClientIp(String c) {
         return clientIp.remove(c);
     }
 
-    public void removeAllClients() {
+    public synchronized void removeAllClients() {
         clientIp = new ArrayList<String>();
     }
 
-	public List<String> getClientIp() { return clientIp; }
+	public synchronized List<String> getClientIp() { return clientIp; }
 }
