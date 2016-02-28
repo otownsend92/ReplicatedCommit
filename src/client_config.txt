@@ -1,0 +1,5 @@
+{
+  "client_server": "client"
+  "server_id": "-1"
+  "servers":[{"ip":"127.0.0.1"}] 
+}

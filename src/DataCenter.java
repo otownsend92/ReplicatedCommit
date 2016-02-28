@@ -31,7 +31,8 @@ public class DataCenter extends Thread {
 	public DataCenter() {
 		try{
 			serverSocket = new ServerSocket(port);
-			serverSocket.setSoTimeout(2000);
+			//Do we need this? I think it's on its own thread so we don't need a timeout? - jordan
+			//serverSocket.setSoTimeout(2000);
 		}
 		catch (IOException e){
 			System.out.println(e.toString());
@@ -45,6 +46,7 @@ public class DataCenter extends Thread {
 			// Accept incoming client connections
 			Socket clientSocket = null;
 			try {
+				System.out.println("Data center listening on port " + port + "...");
 				clientSocket = serverSocket.accept();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -98,6 +100,7 @@ public class DataCenter extends Thread {
 		 * Parse incoming string from client socket
 		 */
 		private void processInput(String input) {
+			System.out.println("Received input: " + input);
 			String[] recvMsg = input.split(" ");
 			
 			if (recvMsg[0].equals("accept")) {
