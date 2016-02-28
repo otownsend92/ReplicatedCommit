@@ -8,22 +8,30 @@
 import java.util.*;
 
 public class Lock {
+    private final int UNLOCKED = 0;
+    private final int READ = 1;
+    private final int WRITE = 2;
+
 	private int lockStatus;	
-	private String clientIp; //the client holding the lock
+	private List<String> clientIp; //the client holding the lock
 
 	public Lock() {
 		lockStatus = 0;
-		clientIp = "";
+        clientIp = new ArrayList<String>();
 	}
 
 	public void setLockStatus(int i) {
-		if(i >= 0 && i <= 2)
+		if(i >= UNLOCKED && i <= WRITE)
 			lockStatus = i;
 	}
 
 	public int getLockStatus() { return lockStatus; }
 
-	public void setClientIp(String c) { clientIp = c; }
+	public void setClientIp(String c) { clientIp.add(c); }
 
-	public String getClientIp() { return clientIp; }
+    public boolean removeClientIp(String c) {
+        return clientIp.remove(c);
+    }
+
+	public List<String> getClientIp() { return clientIp; }
 }
