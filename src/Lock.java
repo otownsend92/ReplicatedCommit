@@ -27,7 +27,7 @@ public class Lock {
 
 	public int getLockStatus() { return lockStatus; }
 
-	public void setClientIp(String c) { clientIp.add(c); }
+	public void addClientIp(String c) { clientIp.add(c); }
 
     public boolean removeClientIp(String c) {
         return clientIp.remove(c);
