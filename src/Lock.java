@@ -17,7 +17,7 @@ public class Lock {
 	}
 
 	public void setLockStatus(int i) {
-		if(i >= UNLOCKED && i <= WRITE)
+		if(i >= 0 && i <= 2)
 			lockStatus = i;
 	}
 
@@ -27,6 +27,10 @@ public class Lock {
 
     public boolean removeClientIp(String c) {
         return clientIp.remove(c);
+    }
+
+    public void removeAllClients() {
+        clientIp = new ArrayList<String>();
     }
 
 	public List<String> getClientIp() { return clientIp; }
