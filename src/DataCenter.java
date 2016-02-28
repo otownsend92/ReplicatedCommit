@@ -94,8 +94,10 @@ public class DataCenter extends Thread {
 			}
 		}
 		
-		// Parse incoming string from client socket
-		public void processInput(String input) {
+		/*
+		 * Parse incoming string from client socket
+		 */
+		private void processInput(String input) {
 			String[] recvMsg = input.split(" ");
 			
 			if (recvMsg[0].equals("accept")) {
@@ -131,7 +133,19 @@ public class DataCenter extends Thread {
 			}
 		}
 		
-		public void notifyDCs(String txn) {
+		/*
+		 * Send a broadcast message to all DCs letting
+		 * them know you accept this transaction
+		 */
+		private void notifyDCs(boolean accepted, String txn) {
+			String msg;
+			//String myIp = Globals.myIP;
+			if(accepted) {
+				//msg = "yes " + myIp + " " + txn;
+			}
+			else {
+				//msg = "no " + myIp + " " + txn;
+			}
 			/*
 			for(int i = 0; i < 5; i++){
 				try{
