@@ -1,4 +1,4 @@
-/**
+package repcom; /**
  * Created by jhughes on 2/27/16.
  */
 import org.json.simple.JSONArray;
@@ -11,7 +11,6 @@ import java.util.Scanner;
 import org.json.simple.JSONObject;
 import java.util.Timer;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.util.TimerTask;
 
@@ -19,8 +18,8 @@ public class Main{
 
     private static String configFile = "";
     private static String clientServer = "";
-    private static ArrayList<String> serverHosts = new ArrayList<>();
-    private static ArrayList<DataCenter> dataCenters= new ArrayList<>();
+    public static ArrayList<String> serverHosts = new ArrayList<>();
+    public static ArrayList<DataCenter> dataCenters= new ArrayList<>();
     private static Integer serverID = -1;
 
     public static void main(String[] args){
@@ -62,7 +61,7 @@ public class Main{
     private static void initialize(){
         //spawn a new client or server instance
         if(clientServer.equals("client")){
-            Client c = new Client(serverHosts);
+            Client c = new Client();
             c.initConnections();
 
             //Basic test message

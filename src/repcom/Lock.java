@@ -1,4 +1,4 @@
-/*
+package repcom;/*
 	Simple java object that represents a lock
 	Lock status:
 		0 - unlocked
