@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.Iterator;
 
 
 public class Shard {
@@ -54,7 +55,7 @@ public class Shard {
     }
 
     /**
-     * Phase 1 of two phase commit
+     * Phase 1 of two phase commit - can I perform this transaction? Try getting all the locks
      * @return: true if it can gather all locks.
      */
     public boolean processTransaction(String rawTransaction) {
@@ -64,6 +65,41 @@ public class Shard {
         }
 
         return gatherLocks(trans);
+    }
+
+    /**
+     * Phase 2 of two phase commit - ACTUALLY perform the transaction, or reject it
+     * either peforms the transaction or it doesn't
+     * releases all locks
+     */
+    public void performTransaction(boolean canCommit, String rawTransaction) {
+        if(canCommit) {
+            List<Transaction> trans = tokenizeTransaction(rawTransaction);
+
+            //go through the transaction and perform everything
+            for(Transaction tran: trans) {
+                if(!tran.isRead()) {
+                    //if writes, write the changes
+                    //ASSUMING NO INSERTS
+                    String key = tran.getVariable();
+                    Integer value = tran.getWriteValue();
+                    data.put(key, value);
+                }
+                //if reads, don't do anything
+            }
+        }
+
+        //whether we can or can't commit, now we release all the locks
+        releaseLocks();
+
+    }
+
+    private void releaseLocks() {
+        for(Map.Entry<String, Lock> pair : lockTable.entrySet()) {
+            String key = pair.getKey();
+            Lock value = pair.getValue();
+            value.removeClientIp(shardIp);
+        }
     }
 
     /*
@@ -136,6 +172,7 @@ public class Shard {
                     lock.addClientIp(shardIp); 
                     lock.setLockStatus(WRITE);
                 }
+
             }
         }
         return true;
