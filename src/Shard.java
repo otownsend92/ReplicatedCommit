@@ -20,27 +20,18 @@ public class Shard {
     //indexed by variable name (a,b,c...)
 	Map<String, Lock> lockTable; 
 	Map<String, Integer> data;
-    String shardIp;
 
 	public Shard() { 
 		lockTable = new HashMap<String, Lock>();
 		data = new HashMap<String, Integer>();
-        shardIp = "123.123.123.123";
 	}
-
-    public Shard(String ip) {
-		lockTable = new HashMap<String, Lock>();
-		data = new HashMap<String, Integer>();
-        shardIp = ip;
-    }
 
     /**
      * Initializes this shard by populating the lockTable and the data Maps
      */
-    public Shard(String ip, String varName, int numData) {
+    public Shard(String varName, int numData) {
 		lockTable = new HashMap<String, Lock>();
 		data = new HashMap<String, Integer>();
-        shardIp = ip;
 
     	for(int i = 0; i < numData; i++) {
     		String newVar = varName + Integer.toString(i);
@@ -53,13 +44,13 @@ public class Shard {
      * Phase 1 of two phase commit - can I perform this transaction? Try getting all the locks
      * @return: true if it can gather all locks.
      */
-    public boolean processTransaction(String rawTransaction) {
+    public boolean processTransaction(String clientIp, String rawTransaction) {
         List<Transaction> trans = tokenizeTransaction(rawTransaction); 
         for(Transaction tran:trans) {
             System.out.println(tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
         }
 
-        return gatherLocks(trans);
+        return gatherLocks(clientIp, trans);
     }
 
     /**
@@ -67,7 +58,7 @@ public class Shard {
      * either peforms the transaction or it doesn't
      * releases all locks
      */
-    public void performTransaction(boolean canCommit, String rawTransaction) {
+    public void performTransaction(String clientIp, boolean canCommit, String rawTransaction) {
         if(canCommit) {
             List<Transaction> trans = tokenizeTransaction(rawTransaction);
 
@@ -85,15 +76,15 @@ public class Shard {
         }
 
         //whether we can or can't commit, now we release all the locks
-        releaseLocks();
+        releaseLocks(clientIp);
 
     }
 
-    private void releaseLocks() {
+    private void releaseLocks(String clientIp) {
         for(Map.Entry<String, Lock> pair : lockTable.entrySet()) {
             String key = pair.getKey();
             Lock value = pair.getValue();
-            value.removeClientIp(shardIp);
+            value.removeClientIp(clientIp);
         }
     }
 
@@ -139,7 +130,7 @@ public class Shard {
         return trans;
     }
 
-    private boolean gatherLocks(List<Transaction> trans) {
+    private boolean gatherLocks(String clientIp, List<Transaction> trans) {
         for(Transaction tran:trans) {
             if(!lockTable.containsKey(tran.getVariable())) //don't look in lockTable for variables we don't store
                 continue;
@@ -151,20 +142,23 @@ public class Shard {
 
                 if(tran.isRead()) { //processing read transaction
                     if(lockStatus == WRITE) { //write lock has been acquired (doesn't matter by who),  we can't get our read lock
-                       return false; 
+                        return false; 
                     }
 
                     //acquire read lock
-                    lock.addClientIp(shardIp); 
+                    lock.addClientIp(clientIp); 
                     lock.setLockStatus(READ);
                 } else { //processing write transaction
-                    if(lockStatus == WRITE && !lockIp.contains(shardIp)) { //write lock has been acquired by someone else,  we can't get our read lock
-                       return false; 
+                    if(lockStatus == WRITE && !lockIp.contains(clientIp)) { //write lock has been acquired by someone else,  we can't get our read lock
+                        return false; 
+                    } else if(lockStatus == WRITE && lockIp.contains(clientIp)) { //we got the write lock already
+                        continue;
                     }
+
                     lock.removeAllClients(); //remove all clients that have had a read lock
 
                     //acquire write lock
-                    lock.addClientIp(shardIp); 
+                    lock.addClientIp(clientIp); 
                     lock.setLockStatus(WRITE);
                 }
 
