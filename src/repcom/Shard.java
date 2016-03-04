@@ -1,6 +1,9 @@
-/**
+package repcom; /**
  * Shard class represents a data shard in a data center. Holds lock tables and a log	
 */
+
+import repcom.Lock;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +21,7 @@ public class Shard {
 
 	//these two need to be the same length
     //indexed by variable name (a,b,c...)
-	Map<String, Lock> lockTable; 
+	Map<String, Lock> lockTable;
 	Map<String, Integer> data;
 
 	public Shard() { 

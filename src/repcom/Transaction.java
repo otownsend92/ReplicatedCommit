@@ -1,3 +1,5 @@
+package repcom;
+
 /**
  * Simple class that represents a Transaction
  */
