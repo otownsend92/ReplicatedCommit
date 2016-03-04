@@ -18,7 +18,6 @@ public class Main{
 
     private static String configFile = "";
     private static String clientServer = "";
-    public static ArrayList<String> serverHosts = new ArrayList<>();
     public static ArrayList<DataCenter> dataCenters= new ArrayList<>();
     private static Integer serverID = -1;
     
