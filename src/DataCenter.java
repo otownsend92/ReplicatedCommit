@@ -47,6 +47,11 @@ public class DataCenter extends Thread {
 	}
 	
 
+	/*
+	 * Listener thread 
+	 * (non-Javadoc)
+	 * @see java.lang.Thread#run()
+	 */
 	public void run() {
 		while(true) {
 			
@@ -145,12 +150,19 @@ public class DataCenter extends Thread {
 				synchronized(pendingTxns) {
 					if(pendingTxns.containsKey(txn)) {
 						incrementTxnQuorum(txn);
-						checkQuorumAndCommit(txn);
+						boolean finishedSuccessfully = checkQuorum(txn);
 					}
 					else {
 						addPendingTxn(txn);
 					}
 				}
+			}
+			
+			else if(recvMsg[0].equals("no")) {
+				// Another DC has told us it doesn't accept this txn
+				// Decrement quorum and check
+				decrementTxnQuorum(txn);
+				boolean finishedSuccessfully = checkQuorum(txn);
 			}
 		}
 		
@@ -173,21 +185,61 @@ public class DataCenter extends Thread {
 		 * Increment txn quorum counter
 		 */
 		private synchronized void incrementTxnQuorum(String txn) {
-			pendingTxns.put(txn, pendingTxns.get(txn)+1);
+			pendingTxns.put(txn, pendingTxns.get(txn)+3);
+		}
+		
+		/*
+		 * Decrement txn quorum counter
+		 */
+		private synchronized void decrementTxnQuorum(String txn) {
+			pendingTxns.put(txn, pendingTxns.get(txn)-1);
 		}
 		
 		/*
 		 * Check quorum for this txn. If = 3, commit txn
+		 * 
+		 * Return TRUE if txn was successfully committed or aborted
+		 * Return FALSE if txn failed to commit or abort
 		 */
-		private synchronized void checkQuorumAndCommit(String txn) {
+		private synchronized boolean checkQuorum(String txn) {
+			
+			int quorumVal = -9;
+			
+			synchronized(pendingTxns) {
+				quorumVal = pendingTxns.get(txn);
+			}
 			
 			// TODO: This assumes we only have 3 datacenters as 2 is a majority in this case
-			if(pendingTxns.get(txn) == 2) { 
-				// TODO: Accept txn
-				// shardX.commitTransaction(txn);
-				// shardY.commitTransaction(txn);
-				// shardZ.commitTransaction(txn);
+			if (quorumVal == -9) {
+				// Wasn't able to access quorumVal
+				return false;
 			}
+			
+			else if(quorumVal >= 5) { 
+				// Either 2 have said "yes" and 1 has said "no" (quorumVal == 5)
+				// OR ... all have said "yes" (quorumVal == 9)
+				
+				// TODO: Accept txn
+				 shardX.performTransaction(true, txn);
+				 shardY.performTransaction(true, txn);
+				 shardZ.performTransaction(true, txn);
+				
+				return true;
+			}
+			
+			else if(quorumVal < 5) {
+				// Either 2 DCs have said "no" (quorumVal == 1)
+				// OR ... all have saod "no" (quorumVal == -3)
+				
+				// TODO: Reject txn
+				 shardX.performTransaction(false, txn);
+				 shardY.performTransaction(false, txn);
+				 shardZ.performTransaction(false, txn);
+				
+				return true;
+			}
+			
+			return false;
 		}
 		
 		/*

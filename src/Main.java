@@ -36,7 +36,7 @@ public class Main{
             String content = new Scanner(new File(configFile)).useDelimiter("\\Z").next();
             parseConfig(content);
 
-        }catch(FileNotFoundException e){
+        } catch(FileNotFoundException e) {
             System.out.println("Can't find config file: " + configFile);
         }
 
@@ -62,7 +62,7 @@ public class Main{
     private static void initialize(){
         //spawn a new client or server instance
         if(clientServer.equals("client")){
-            Client c = new Client(serverHosts);
+            final Client c = new Client(serverHosts);
             c.initConnections();
 
             //Basic test message
