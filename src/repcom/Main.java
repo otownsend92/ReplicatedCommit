@@ -21,6 +21,9 @@ public class Main{
     public static ArrayList<String> serverHosts = new ArrayList<>();
     public static ArrayList<DataCenter> dataCenters= new ArrayList<>();
     private static Integer serverID = -1;
+    
+    // List of DC IPs
+    public static ArrayList<String> serverHosts = new ArrayList<>();
 
     public static void main(String[] args){
         configFile = args[0];
@@ -35,7 +38,7 @@ public class Main{
             String content = new Scanner(new File(configFile)).useDelimiter("\\Z").next();
             parseConfig(content);
 
-        }catch(FileNotFoundException e){
+        } catch(FileNotFoundException e) {
             System.out.println("Can't find config file: " + configFile);
         }
 
@@ -61,7 +64,7 @@ public class Main{
     private static void initialize(){
         //spawn a new client or server instance
         if(clientServer.equals("client")){
-            Client c = new Client();
+            final Client c = new Client();
             c.initConnections();
 
             //Basic test message
@@ -77,7 +80,7 @@ public class Main{
         }
         else if(clientServer.equals("server")){
             //Spawn a new datacenter, etc
-            DataCenter d = new DataCenter();
+            DataCenter d = new DataCenter(500); // TODO: numShardData is hardcoded for now
             dataCenters.add(d);
             d.start();
         }
