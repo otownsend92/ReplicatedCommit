@@ -26,9 +26,9 @@ public class DataCenter extends Thread {
 			Collections.synchronizedMap(new HashMap<String, Integer>());
 	
 	// Class items that will come in later with other commits
-	Shard shardX = new Shard();
-	Shard shardY = new Shard();
-	Shard shardZ = new Shard();
+	private Shard shardX = new Shard();
+	private Shard shardY = new Shard();
+	private Shard shardZ = new Shard();
 	
 	// Possibly remove later 
 	int port = 3000;
@@ -46,6 +46,9 @@ public class DataCenter extends Thread {
 	}
 	
 
+	/**
+	 * Override: DataCenter run()
+	 */
 	public void run() {
 		while(true) {
 			
@@ -67,7 +70,9 @@ public class DataCenter extends Thread {
 	}
 
 	
-	// HandlerThread class to handle new client connection requests
+	/**
+	 *  HandlerThread class to handle new client connection requests
+	 */
 	public class DCHandlerThread extends Thread {
 		
 		private Socket socket;
@@ -101,7 +106,7 @@ public class DataCenter extends Thread {
 			}
 		}
 		
-		/*
+		/**
 		 * Parse incoming string from client socket
 		 */
 		private void processInput(String input) {
@@ -132,7 +137,6 @@ public class DataCenter extends Thread {
 					notifyDCsAndClient(false, txn);
 				}
 				
-				
 			}
 			
 			else if (recvMsg[0].equals("yes")) {
@@ -152,28 +156,28 @@ public class DataCenter extends Thread {
 		}
 		
 		
-		/*
+		/**
 		 * Add this new incoming txn to pendingTxns
 		 */
 		private synchronized void addPendingTxn(String txn) {
 			pendingTxns.put(txn, 0);
 		}
 		
-		/*
-		 * This txn is finished. Remove it from pendingTxns
+		/**
+		 * This txn is finished and committed. Remove it from pendingTxns
 		 */
 		private synchronized void removePendingTxn(String txn) {
 			pendingTxns.remove(txn);
 		}
 		
-		/*
+		/**
 		 * Increment txn quorum counter
 		 */
 		private synchronized void incrementTxnQuorum(String txn) {
 			pendingTxns.put(txn, pendingTxns.get(txn)+1);
 		}
 		
-		/*
+		/**
 		 * Check quorum for this txn. If = 3, commit txn
 		 */
 		private synchronized void checkQuorumAndCommit(String txn) {
@@ -187,7 +191,7 @@ public class DataCenter extends Thread {
 			}
 		}
 		
-		/*
+		/**
 		 * Send a broadcast message to all DCs letting
 		 * them know you accept this transaction
 		 */
