@@ -126,13 +126,13 @@ public class DataCenter extends Thread {
 					// All shards agreed and there are no conflicting locks
 					// Move forward with transaction and inform other DCs 
 					// that you accept the Paxos request
-					notifyDCs(true, txn);
+					notifyDCsAndClient(true, txn);
 				}
 				
 				else {
 					// One of the shards found a lock conflict and rejected the request
 					// TODO: Respond to client? 
-					notifyDCs(false, txn);
+					notifyDCsAndClient(false, txn);
 				}
 				
 				
@@ -180,8 +180,13 @@ public class DataCenter extends Thread {
 		 * Check quorum for this txn. If = 3, commit txn
 		 */
 		private synchronized void checkQuorumAndCommit(String txn) {
-			if(pendingTxns.get(txn) == 3) {
+			
+			// TODO: This assumes we only have 3 datacenters as 2 is a majority in this case
+			if(pendingTxns.get(txn) == 2) { 
 				// TODO: Accept txn
+				// shardX.commitTransaction(txn);
+				// shardY.commitTransaction(txn);
+				// shardZ.commitTransaction(txn);
 			}
 		}
 		
@@ -189,7 +194,8 @@ public class DataCenter extends Thread {
 		 * Send a broadcast message to all DCs letting
 		 * them know you accept this transaction
 		 */
-		private void notifyDCs(boolean accepted, String txn) {
+		private void notifyDCsAndClient(boolean accepted, String txn) {
+			// TODO: This entire method pretty much
 			String msg;
 			//String myIp = Globals.myIP;
 			if(accepted) {
