@@ -35,6 +35,25 @@ public class Shard {
     }
 
     /**
+     * Initialize the data table and locktable with empty locks for all data items
+     */
+    public void initLockTable(List<String> dataItems) {
+        for(String dataItem:dataItems) {
+            lockTable.put(dataItem, new Lock());
+            data.put(dataItem, new Integer(-1));
+        }
+    }
+
+    /**
+     * Add a new element to the shard
+     */
+    public String addNewElement(String dataItem, Integer dataValue) {
+        lockTable.put(dataItem, new Lock());
+        data.put(dataItem, dataValue);
+        return dataItem;
+    }
+
+    /**
      * Phase 1 of two phase commit
      * @return: true if it can gather all locks.
      */
@@ -94,30 +113,31 @@ public class Shard {
             if(!lockTable.containsKey(tran.getVariable())) //don't look in lockTable for variables we don't store
                 continue;
 
-            Lock lock = lockTable.get(tran.getVariable());
-            int lockStatus = lock.getLockStatus();
-            List<String> lockIp = lock.getClientIp();
+            synchronized(this) {
+                Lock lock = lockTable.get(tran.getVariable());
+                int lockStatus = lock.getLockStatus();
+                List<String> lockIp = lock.getClientIp();
 
-            if(tran.isRead()) { //processing read transaction
-                if(lockStatus == WRITE) { //write lock has been acquired (doesn't matter by who),  we can't get our read lock
-                   return false; 
+                if(tran.isRead()) { //processing read transaction
+                    if(lockStatus == WRITE) { //write lock has been acquired (doesn't matter by who),  we can't get our read lock
+                       return false; 
+                    }
+
+                    //acquire read lock
+                    lock.addClientIp(shardIp); 
+                    lock.setLockStatus(READ);
+                } else { //processing write transaction
+                    if(lockStatus == WRITE && !lockIp.contains(shardIp)) { //write lock has been acquired by someone else,  we can't get our read lock
+                       return false; 
+                    }
+                    lock.removeAllClients(); //remove all clients that have had a read lock
+
+                    //acquire write lock
+                    lock.addClientIp(shardIp); 
+                    lock.setLockStatus(WRITE);
                 }
-
-                //acquire read lock
-                lock.addClientIp(shardIp); 
-                lock.setLockStatus(READ);
-            } else { //processing write transaction
-                if(lockStatus == WRITE && !lockIp.contains(shardIp)) { //write lock has been acquired by someone else,  we can't get our read lock
-                   return false; 
-                }
-                lock.removeAllClients(); //remove all clients that have had a read lock
-
-                //acquire write lock
-                lock.addClientIp(shardIp); 
-                lock.setLockStatus(WRITE);
             }
         }
-
         return true;
     }
 
