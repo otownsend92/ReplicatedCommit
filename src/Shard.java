@@ -22,7 +22,6 @@ public class Shard {
 	Map<String, Integer> data;
     String shardIp;
 
-	//TODO: change this based on config file
 	public Shard() { 
 		lockTable = new HashMap<String, Lock>();
 		data = new HashMap<String, Integer>();
@@ -36,22 +35,18 @@ public class Shard {
     }
 
     /**
-     * Initialize the data table and locktable with empty locks for all data items
+     * Initializes this shard by populating the lockTable and the data Maps
      */
-    public void initLockTable(List<String> dataItems) {
-        for(String dataItem:dataItems) {
-            lockTable.put(dataItem, new Lock());
-            data.put(dataItem, new Integer(-1));
-        }
-    }
+    public Shard(String ip, String varName, int numData) {
+		lockTable = new HashMap<String, Lock>();
+		data = new HashMap<String, Integer>();
+        shardIp = ip;
 
-    /**
-     * Add a new element to the shard
-     */
-    public String addNewElement(String dataItem, Integer dataValue) {
-        lockTable.put(dataItem, new Lock());
-        data.put(dataItem, dataValue);
-        return dataItem;
+    	for(int i = 0; i < numData; i++) {
+    		String newVar = varName + Integer.toString(i);
+            data.put(newVar, new Integer(0));
+            lockTable.put(newVar, new Lock());
+    	}
     }
 
     /**
@@ -178,22 +173,5 @@ public class Shard {
         return true;
     }
 
-    public void initializeMe(String me) {
-    	initializeData(me);
-    	initializeLocks(me);
-    }
-    
-    private void initializeData(String me) {
-    	// TODO: Alick
-    	int i;
-    	for(i = 0; i < 1000; i++) {
-    		String newVar = "x" + i;
-    		newVar.add(); ... blahblah hmmmmmmm doooood
-    	}
-    }
-    
-    private void initializeLocks(String me) {
-    	// TODO: Alick
-    }
 	
 }
