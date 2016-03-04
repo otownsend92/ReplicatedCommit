@@ -80,8 +80,7 @@ public class Main{
         }
         else if(clientServer.equals("server")){
             //Spawn a new datacenter, etc
-            DataCenter d = new DataCenter();
-            d.initializeShards();
+            DataCenter d = new DataCenter(500); // TODO: numShardData is hardcoded for now
             dataCenters.add(d);
             d.start();
         }

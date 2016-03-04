@@ -21,11 +21,13 @@ import java.util.Scanner;
 
 public class DataCenter extends Thread {
 
+	private final int DO_NOTHING = 0;
+    private final int COMMIT = 1;
+    
 	private ServerSocket serverSocket;
 	private Map<String, Integer> pendingTxns = 
 			Collections.synchronizedMap(new HashMap<String, Integer>());
 	
-	// Class items that will come in later with other commits
 	Shard shardX; 
 	Shard shardY;
 	Shard shardZ;
@@ -35,13 +37,13 @@ public class DataCenter extends Thread {
 	
 	
 	// DataCenter constructor
-	public DataCenter() {
+	public DataCenter(int numShardData) {
 		try{
 			serverSocket = new ServerSocket(port);
 			
-			shardX = new Shard();
-			shardY = new Shard();
-			shardZ = new Shard();
+			shardX = new Shard(numShardData);
+			shardY = new Shard(numShardData);
+			shardZ = new Shard(numShardData);
 		}
 		catch (IOException e){
 			System.out.println(e.toString());
@@ -49,10 +51,8 @@ public class DataCenter extends Thread {
 	}
 	
 
-	/*
+	/**
 	 * Listener thread 
-	 * (non-Javadoc)
-	 * @see java.lang.Thread#run()
 	 */
 	public void run() {
 		while(true) {
@@ -73,17 +73,6 @@ public class DataCenter extends Thread {
 				System.out.println("DC failed to connect to client.");
 			}
 		}
-	}
-	
-	/**
-	 * Initialize shards with "random" data
-	 * @author olivertownsend
-	 *
-	 */
-	public void initializeShards() {
-		shardX.initializeMe("x");
-		shardY.initializeMe("y");
-		shardZ.initializeMe("z");
 	}
 
 	
@@ -161,21 +150,26 @@ public class DataCenter extends Thread {
 				// the attached transaction. Check pendingTxns
 				
 				synchronized(pendingTxns) {
-					if(pendingTxns.containsKey(txn)) {
-						incrementTxnQuorum(txn);
-						boolean finishedSuccessfully = checkQuorum(txn);
-					}
-					else {
+					if(!pendingTxns.containsKey(txn)) 
 						addPendingTxn(txn);
-					}
+					
+					incrementTxnQuorum(txn);
+					if(checkQuorum(txn))
+						removePendingTxn(txn);
 				}
 			}
 			
 			else if(recvMsg[0].equals("no")) {
 				// Another DC has told us it doesn't accept this txn
 				// Decrement quorum and check
-				decrementTxnQuorum(txn);
-				boolean finishedSuccessfully = checkQuorum(txn);
+				synchronized(pendingTxns) {
+					if(!pendingTxns.containsKey(txn)) 
+						addPendingTxn(txn); 
+					
+					decrementTxnQuorum(txn);
+					if(checkQuorum(txn))
+						removePendingTxn(txn);
+				}
 			}
 		}
 		
@@ -211,7 +205,7 @@ public class DataCenter extends Thread {
 		/*
 		 * Check quorum for this txn. If = 3, commit txn
 		 * 
-		 * Return TRUE if txn was successfully committed or aborted
+		 * Return TRUE if txn was successfully committed or aborted (remove txn from pendingTxns)
 		 * Return FALSE if txn failed to commit or abort
 		 */
 		private synchronized boolean checkQuorum(String txn) {
@@ -222,9 +216,50 @@ public class DataCenter extends Thread {
 				quorumVal = pendingTxns.get(txn);
 			}
 			
-			// TODO: This assumes we only have 3 datacenters as 2 is a majority in this case
+			
 			if (quorumVal == -9) {
 				// Wasn't able to access quorumVal
+				return false;
+			}
+			
+			else if(quorumVal == -1) { 
+				// One has said "no"  ...wait for others
+				return false;
+			}
+			
+			else if(quorumVal == -2) { 
+				// 2 have said "no" ...abort
+				performTxn(false, txn);
+				
+				// Return false as in, keep txn in pendingTxns
+				// in case 3rd DC comes around and responds eventually
+				// we won't re-add it to pendingTxns
+				return false; 
+			}
+			
+			else if(quorumVal == -3) { 
+				// All 3 have said "no", but we have already aborted above
+				// when (quroumVal == -2) for efficiency's sake
+				
+				// Txn is already aborted, but need to remove
+				// from pendingTxns
+				return true;
+			}
+			
+			else if(quorumVal == 1) { 
+				// 2 said "no" and 1 said "yes"  ...abort
+				
+				performTxn(false, txn);
+				return true;
+			}
+			
+			else if(quorumVal == 2) { 
+				// 1 said "no" and 1 said "yes"  ...keep waiting
+				return false;
+			}
+			
+			else if(quorumVal == 3) { 
+				// 1 said "yes"  ...keep waiting
 				return false;
 			}
 			
@@ -232,27 +267,19 @@ public class DataCenter extends Thread {
 				// Either 2 have said "yes" and 1 has said "no" (quorumVal == 5)
 				// OR ... all have said "yes" (quorumVal == 9)
 				
-				// TODO: Accept txn
-				 shardX.performTransaction(true, txn);
-				 shardY.performTransaction(true, txn);
-				 shardZ.performTransaction(true, txn);
-				
+				// Tell shards to acceot
+				performTxn(true, txn);
 				return true;
 			}
 			
-			else if(quorumVal < 5) {
-				// Either 2 DCs have said "no" (quorumVal == 1)
-				// OR ... all have saod "no" (quorumVal == -3)
-				
-				// TODO: Reject txn
-				 shardX.performTransaction(false, txn);
-				 shardY.performTransaction(false, txn);
-				 shardZ.performTransaction(false, txn);
-				
-				return true;
-			}
 			
 			return false;
+		}
+		
+		private void performTxn(boolean commit, String txn) {
+			shardX.performTransaction(commit, txn);
+			shardY.performTransaction(commit, txn);
+			shardZ.performTransaction(commit, txn);
 		}
 		
 		/*
