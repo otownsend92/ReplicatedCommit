@@ -9,6 +9,7 @@
  */
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -41,9 +42,9 @@ public class DataCenter extends Thread {
 		try{
 			serverSocket = new ServerSocket(port);
 			
-			shardX = new Shard(numShardData);
-			shardY = new Shard(numShardData);
-			shardZ = new Shard(numShardData);
+			shardX = new Shard("x", numShardData);
+			shardY = new Shard("y", numShardData);
+			shardZ = new Shard("z", numShardData);
 		}
 		catch (IOException e){
 			System.out.println(e.toString());
@@ -125,9 +126,9 @@ public class DataCenter extends Thread {
 				addPendingTxn(txn);
 				
 				// Start 2PC
-				boolean xGood = shardX.processTransaction(txn);
-				boolean yGood = shardY.processTransaction(txn);
-				boolean zGood = shardZ.processTransaction(txn);
+				boolean xGood = shardX.processTransaction(ipAddr, txn);
+				boolean yGood = shardY.processTransaction(ipAddr, txn);
+				boolean zGood = shardZ.processTransaction(ipAddr, txn);
 				
 				if (xGood && yGood && zGood) {
 					// All shards agreed and there are no conflicting locks
@@ -138,7 +139,6 @@ public class DataCenter extends Thread {
 				
 				else {
 					// One of the shards found a lock conflict and rejected the request
-					// TODO: Respond to client? 
 					notifyDCsAndClient(false, txn);
 				}
 				
@@ -154,7 +154,7 @@ public class DataCenter extends Thread {
 						addPendingTxn(txn);
 					
 					incrementTxnQuorum(txn);
-					if(checkQuorum(txn))
+					if(checkQuorum(txn, ipAddr))
 						removePendingTxn(txn);
 				}
 			}
@@ -167,7 +167,7 @@ public class DataCenter extends Thread {
 						addPendingTxn(txn); 
 					
 					decrementTxnQuorum(txn);
-					if(checkQuorum(txn))
+					if(checkQuorum(txn, ipAddr))
 						removePendingTxn(txn);
 				}
 			}
@@ -208,7 +208,7 @@ public class DataCenter extends Thread {
 		 * Return TRUE if txn was successfully committed or aborted (remove txn from pendingTxns)
 		 * Return FALSE if txn failed to commit or abort
 		 */
-		private synchronized boolean checkQuorum(String txn) {
+		private synchronized boolean checkQuorum(String txn, String ip) {
 			
 			int quorumVal = -9;
 			
@@ -229,7 +229,7 @@ public class DataCenter extends Thread {
 			
 			else if(quorumVal == -2) { 
 				// 2 have said "no" ...abort
-				performTxn(false, txn);
+				performTxn(false, txn, ip);
 				
 				// Return false as in, keep txn in pendingTxns
 				// in case 3rd DC comes around and responds eventually
@@ -249,7 +249,7 @@ public class DataCenter extends Thread {
 			else if(quorumVal == 1) { 
 				// 2 said "no" and 1 said "yes"  ...abort
 				
-				performTxn(false, txn);
+				performTxn(false, txn, ip);
 				return true;
 			}
 			
@@ -268,7 +268,7 @@ public class DataCenter extends Thread {
 				// OR ... all have said "yes" (quorumVal == 9)
 				
 				// Tell shards to acceot
-				performTxn(true, txn);
+				performTxn(true, txn, ip);
 				return true;
 			}
 			
@@ -276,10 +276,10 @@ public class DataCenter extends Thread {
 			return false;
 		}
 		
-		private void performTxn(boolean commit, String txn) {
-			shardX.performTransaction(commit, txn);
-			shardY.performTransaction(commit, txn);
-			shardZ.performTransaction(commit, txn);
+		private void performTxn(boolean commit, String txn, String ip) {
+			shardX.performTransaction(ip, commit, txn);
+			shardY.performTransaction(ip, commit, txn);
+			shardZ.performTransaction(ip, commit, txn);
 		}
 		
 		/*
@@ -287,30 +287,31 @@ public class DataCenter extends Thread {
 		 * them know you accept this transaction
 		 */
 		private void notifyDCsAndClient(boolean accepted, String txn) {
-			// TODO: This entire method pretty much
-			String msg;
-			//String myIp = Globals.myIP;
+			// TODO: Finish
+			
+			String msg = "";
+			//String myIp = Main.myIP;
 			if(accepted) {
 				//msg = "yes " + myIp + " " + txn;
 			}
 			else {
 				//msg = "no " + myIp + " " + txn;
 			}
-			/*
+			
 			for(int i = 0; i < 5; i++){
 				try{
-				Socket s = new Socket(Main.siteIpAddresses.get(i), Globals.sitePorts.get(i));
-				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
-
-				socketOut.println(msg);
-				
-				socketOut.close();
-				s.close();
+					Socket s = new Socket(Main.serverHosts.get(i), 3000);
+					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
+	
+					socketOut.println(msg);
+					
+					socketOut.close();
+					s.close();
 				}
 				catch (IOException e){
 					// Try the next one.
 				}
-			} */
+			} 
 		}
 	}
 	
