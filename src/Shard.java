@@ -178,5 +178,22 @@ public class Shard {
         return true;
     }
 
+    public void initializeMe(String me) {
+    	initializeData(me);
+    	initializeLocks(me);
+    }
+    
+    private void initializeData(String me) {
+    	// TODO: Alick
+    	int i;
+    	for(i = 0; i < 1000; i++) {
+    		String newVar = "x" + i;
+    		newVar.add(); ... blahblah hmmmmmmm doooood
+    	}
+    }
+    
+    private void initializeLocks(String me) {
+    	// TODO: Alick
+    }
 	
 }

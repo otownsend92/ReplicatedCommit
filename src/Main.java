@@ -19,9 +19,11 @@ public class Main{
 
     private static String configFile = "";
     private static String clientServer = "";
-    private static ArrayList<String> serverHosts = new ArrayList<>();
     private static ArrayList<DataCenter> dataCenters= new ArrayList<>();
     private static Integer serverID = -1;
+    
+    // List of DC IPs
+    public static ArrayList<String> serverHosts = new ArrayList<>();
 
     public static void main(String[] args){
         configFile = args[0];
@@ -79,6 +81,7 @@ public class Main{
         else if(clientServer.equals("server")){
             //Spawn a new datacenter, etc
             DataCenter d = new DataCenter();
+            d.initializeShards();
             dataCenters.add(d);
             d.start();
         }

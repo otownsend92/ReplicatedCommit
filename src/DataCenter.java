@@ -26,9 +26,9 @@ public class DataCenter extends Thread {
 			Collections.synchronizedMap(new HashMap<String, Integer>());
 	
 	// Class items that will come in later with other commits
-	Shard shardX = new Shard();
-	Shard shardY = new Shard();
-	Shard shardZ = new Shard();
+	Shard shardX; 
+	Shard shardY;
+	Shard shardZ;
 	
 	// Possibly remove later 
 	int port = 3000;
@@ -38,8 +38,10 @@ public class DataCenter extends Thread {
 	public DataCenter() {
 		try{
 			serverSocket = new ServerSocket(port);
-			//Do we need this? I think it's on its own thread so we don't need a timeout? - jordan
-			//serverSocket.setSoTimeout(2000);
+			
+			shardX = new Shard();
+			shardY = new Shard();
+			shardZ = new Shard();
 		}
 		catch (IOException e){
 			System.out.println(e.toString());
@@ -71,6 +73,17 @@ public class DataCenter extends Thread {
 				System.out.println("DC failed to connect to client.");
 			}
 		}
+	}
+	
+	/**
+	 * Initialize shards with "random" data
+	 * @author olivertownsend
+	 *
+	 */
+	public void initializeShards() {
+		shardX.initializeMe("x");
+		shardY.initializeMe("y");
+		shardZ.initializeMe("z");
 	}
 
 	
