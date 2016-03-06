@@ -48,6 +48,8 @@ public class DataCenter extends Thread {
 			shardX = new Shard("x", numShardData);
 			shardY = new Shard("y", numShardData);
 			shardZ = new Shard("z", numShardData);
+			
+			System.out.println("Shards configured");
 		}
 		catch (IOException e){
 			System.out.println(e.toString());
@@ -59,12 +61,13 @@ public class DataCenter extends Thread {
 	 * Listener thread 
 	 */
 	public void run() {
+		System.out.println("Data center listening on port " + port + "...");
+		
 		while(true) {
 			
 			// Accept incoming client connections
 			Socket clientSocket = null;
 			try {
-				System.out.println("Data center listening on port " + port + "...");
 				clientSocket = serverSocket.accept();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -87,6 +90,7 @@ public class DataCenter extends Thread {
 		private DataCenter parentThread;
 		
 		public DCHandlerThread(DataCenter t, Socket s){
+			System.out.println("New DCHandlerThread");
 			socket = s;
 			parentThread = t;
 		}
@@ -120,6 +124,11 @@ public class DataCenter extends Thread {
 		private void processInput(String input) {
 			System.out.println("Received input: " + input);
 			String[] recvMsg = input.split(" ");
+			
+			if(recvMsg.length != 3) {
+				return;
+			}
+			
 			String ipAddr = recvMsg[1];
 			String txn = recvMsg[2];
 			
@@ -318,11 +327,13 @@ public class DataCenter extends Thread {
 			 */
 			Socket s;
 			try {
+				System.out.println("Sending to client " + clientIp);
 				s = new Socket(clientIp, 3000);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
 				s.close();
+				System.out.println("Sent " + msg + " to client");
 				
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
