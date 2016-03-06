@@ -114,7 +114,7 @@ public class Client extends com.yahoo.ycsb.DB{
         super();
         serverConnections = new HashMap<String, ClientConnection>();
         hosts = Main.serverHosts;
-        operationQueue = new LinkedList<>();
+        operationQueue = new LinkedList<String>();
     }
 
     @Override
