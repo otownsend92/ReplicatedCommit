@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -136,12 +137,12 @@ public class DataCenter extends Thread {
 					// All shards agreed and there are no conflicting locks
 					// Move forward with transaction and inform other DCs 
 					// that you accept the Paxos request
-					notifyDCsAndClient(true, txn);
+					notifyDCsAndClient(true, txn, ipAddr);
 				}
 				
 				else {
 					// One of the shards found a lock conflict and rejected the request
-					notifyDCsAndClient(false, txn);
+					notifyDCsAndClient(false, txn, ipAddr);
 				}
 				
 				
@@ -288,7 +289,7 @@ public class DataCenter extends Thread {
 		 * Send a broadcast message to all DCs letting
 		 * them know you accept this transaction
 		 */
-		private void notifyDCsAndClient(boolean accepted, String txn) {
+		private void notifyDCsAndClient(boolean accepted, String txn, String clientIp) {
 			String msg = "";
 			if(accepted) {
 				msg = "yes " + myIp + " " + txn;
@@ -310,7 +311,27 @@ public class DataCenter extends Thread {
 				catch (IOException e){
 					// ...
 				}
-			} 
+			}
+			
+			/*
+			 * Send to client
+			 */
+			Socket s;
+			try {
+				s = new Socket(clientIp, 3000);
+				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
+				socketOut.println(msg);
+				socketOut.close();
+				s.close();
+				
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 	}
 	
