@@ -15,6 +15,8 @@ public class Client extends com.yahoo.ycsb.DB{
     private ArrayList<String> hosts;
     private int portNumber = 3000;
     private HashMap<String, ClientConnection> serverConnections;
+    private LinkedList<String> operationQueue;
+    private final Object lock = new Object();
 
     public void initConnections(){
         for (String h: hosts){
@@ -26,16 +28,33 @@ public class Client extends com.yahoo.ycsb.DB{
 
     public void receivedMessage(String host, String msg){
         System.out.println("Received message from: " + host + " msg: " + msg);
+        synchronized(lock) {
+            lock.notify();
+        }
     }
 
     public void sendMessage(String host, String msg){
-        serverConnections.get(host).sendMessage(msg);
+        try {
+            System.out.println("Sending message to: " + host + " msg: " + msg);
+            serverConnections.get(host).sendMessage(msg);
+        }catch(NullPointerException e){
+            System.out.println("Could not get host: " + host);
+            System.out.println(e);
+        }
     }
 
     @Override
     public Status update(String s, String s1, HashMap<String, ByteIterator> hashMap) {
-        this.sendMessage(s, s1);
-        return null;
+
+        synchronized(lock) {
+            try {
+                this.sendMessage(s, s1);
+                lock.wait();
+            } catch (InterruptedException e) {
+                System.out.println("Update thread interrupted: " + e);
+            }
+        }
+        return Status.OK;
     }
 
     @Override
@@ -45,26 +64,40 @@ public class Client extends com.yahoo.ycsb.DB{
 
     @Override
     public Status scan(String s, String s1, int i, Set<String> set, Vector<HashMap<String, ByteIterator>> vector) {
-
-        return null;
+        return Status.BAD_REQUEST;
     }
 
     @Override
     public Status read(String s, String s1, Set<String> set, HashMap<String, ByteIterator> hashMap) {
-        this.sendMessage(s, s1);
-        return null;
+        synchronized(lock) {
+            try {
+                this.sendMessage(s, s1);
+                lock.wait();
+            } catch (InterruptedException e) {
+                System.out.println("Read thread interrupted: " + e);
+            }
+        }
+        return Status.OK;
     }
 
     @Override
     public Status insert(String s, String s1, HashMap<String, ByteIterator> hashMap) {
-        System.out.println("Insert transaction...");
-        //this.sendMessage(s, s1);
-        return Status.OK;
+        return Status.BAD_REQUEST;
     }
 
     @Override
     public void init() throws DBException {
         super.init();
+        //This method is run for YCSB, override and initialize connections since main doesn't run
+        hosts.clear();
+        Properties prop = getProperties();
+        Integer numServ = Integer.parseInt(prop.getProperty("NumServ"));
+        for (int i=1; i<= numServ; i++){
+            String ip = prop.getProperty("Server" + Integer.toString(numServ));
+            System.out.println("Server " + Integer.toString(numServ) +  ": " + ip );
+            hosts.add(ip);
+        }
+        initConnections();
     }
 
     @Override
@@ -74,14 +107,14 @@ public class Client extends com.yahoo.ycsb.DB{
 
     @Override
     public Status delete(String s, String s1) {
-        this.sendMessage(s, s1);
-        return null;
+        return Status.BAD_REQUEST;
     }
 
     public Client() {
         super();
         serverConnections = new HashMap<>();
         hosts = Main.serverHosts;
+        operationQueue = new LinkedList<>();
     }
 
     @Override
