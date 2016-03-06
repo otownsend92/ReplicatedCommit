@@ -23,8 +23,7 @@ import java.util.Scanner;
 
 public class DataCenter extends Thread {
 
-	private final int DO_NOTHING = 0;
-    private final int COMMIT = 1;
+	private String myIp;
     
 	private ServerSocket serverSocket;
 	private Map<String, Integer> pendingTxns = 
@@ -39,9 +38,11 @@ public class DataCenter extends Thread {
 	
 	
 	// DataCenter constructor
-	public DataCenter(int numShardData) {
+	public DataCenter(int numShardData, String ip) {
 		try{
 			serverSocket = new ServerSocket(port);
+			
+			myIp = ip;
 			
 			shardX = new Shard("x", numShardData);
 			shardY = new Shard("y", numShardData);
@@ -288,18 +289,15 @@ public class DataCenter extends Thread {
 		 * them know you accept this transaction
 		 */
 		private void notifyDCsAndClient(boolean accepted, String txn) {
-			// TODO: Finish
-			
 			String msg = "";
-			//String myIp = Main.myIP;
 			if(accepted) {
-				//msg = "yes " + myIp + " " + txn;
+				msg = "yes " + myIp + " " + txn;
 			}
 			else {
-				//msg = "no " + myIp + " " + txn;
+				msg = "no " + myIp + " " + txn;
 			}
 			
-			for(int i = 0; i < 5; i++){
+			for(int i = 0; i < Main.serverHosts.size(); i++){
 				try{
 					Socket s = new Socket(Main.serverHosts.get(i), 3000);
 					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
@@ -310,7 +308,7 @@ public class DataCenter extends Thread {
 					s.close();
 				}
 				catch (IOException e){
-					// Try the next one.
+					// ...
 				}
 			} 
 		}

@@ -18,11 +18,11 @@ public class Main{
 
     private static String configFile = "";
     private static String clientServer = "";
-    public static ArrayList<DataCenter> dataCenters= new ArrayList<>();
+    public static ArrayList<DataCenter> dataCenters= new ArrayList<DataCenter>();
     private static Integer serverID = -1;
     
     // List of DC IPs
-    public static ArrayList<String> serverHosts = new ArrayList<>();
+    public static ArrayList<String> serverHosts = new ArrayList<String>();
 
     public static void main(String[] args){
         configFile = args[0];
@@ -79,7 +79,7 @@ public class Main{
         }
         else if(clientServer.equals("server")){
             //Spawn a new datacenter, etc
-            DataCenter d = new DataCenter(500); // TODO: numShardData is hardcoded for now
+            DataCenter d = new DataCenter(500, serverHosts.get(serverID)); // TODO: numShardData is hardcoded for now
             dataCenters.add(d);
             d.start();
         }
