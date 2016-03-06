@@ -297,7 +297,7 @@ public class DataCenter extends Thread {
 				msg = "no " + myIp + " " + txn;
 			}
 			
-			for(int i = 0; i < 5; i++){
+			for(int i = 0; i < Main.serverHosts.size(); i++){
 				try{
 					Socket s = new Socket(Main.serverHosts.get(i), 3000);
 					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
