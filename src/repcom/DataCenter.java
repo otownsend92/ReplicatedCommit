@@ -90,7 +90,7 @@ public class DataCenter extends Thread {
 		private DataCenter parentThread;
 		
 		public DCHandlerThread(DataCenter t, Socket s){
-			System.out.println("New DCHandlerThread");
+//			System.out.println("New DCHandlerThread");
 			socket = s;
 			parentThread = t;
 		}
@@ -111,7 +111,7 @@ public class DataCenter extends Thread {
 				}
 				processInput(input);
 				socketIn.close();
-				socket.close();
+//				socket.close();
 			}
 			catch(IOException e){
 				System.out.println(e.toString());
@@ -329,10 +329,11 @@ public class DataCenter extends Thread {
 			try {
 				System.out.println("Sending to client " + clientIp);
 				s = new Socket(clientIp, 3000);
-				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
+				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
-				s.close();
+//				s.close();
+				socket.close();
 				System.out.println("Sent " + msg + " to client");
 				
 			} catch (UnknownHostException e) {

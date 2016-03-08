@@ -50,7 +50,7 @@ public class Shard {
     public boolean processTransaction(String clientIp, String rawTransaction) {
         List<Transaction> trans = tokenizeTransaction(rawTransaction); 
         for(Transaction tran:trans) {
-            System.out.println(tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
+            System.out.println("Shard: " + tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
         }
 
         return gatherLocks(clientIp, trans);
