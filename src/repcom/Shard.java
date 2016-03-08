@@ -61,25 +61,39 @@ public class Shard {
      * either peforms the transaction or it doesn't
      * releases all locks
      */
-    public void performTransaction(String clientIp, boolean canCommit, String rawTransaction) {
+    public String performTransaction(String clientIp, boolean canCommit, String rawTransaction) {
+    	StringBuilder sb = new StringBuilder();
+    	boolean firstInsert = true;
+    	
         if(canCommit) {
             List<Transaction> trans = tokenizeTransaction(rawTransaction);
 
             //go through the transaction and perform everything
             for(Transaction tran: trans) {
+                String key = tran.getVariable();
                 if(!tran.isRead()) {
                     //if writes, write the changes
                     //ASSUMING NO INSERTS
-                    String key = tran.getVariable();
                     Integer value = tran.getWriteValue();
                     data.put(key, value);
+                } else {
+                    //if reads, save all the reads
+                	Integer value = data.get(key);
+                	if(firstInsert == true) {
+                		firstInsert = false;
+                	} else {
+                		sb.append(", ");
+                	}
+                	sb.append(key + " = " + value.toString());
                 }
-                //if reads, don't do anything
             }
         }
 
         //whether we can or can't commit, now we release all the locks
         releaseLocks(clientIp);
+        
+        //return read values - if any
+        return sb.toString();
 
     }
 
