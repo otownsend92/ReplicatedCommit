@@ -291,12 +291,9 @@ public class DataCenter extends Thread {
 		}
 		
 		private void performTxn(boolean commit, String txn, String ip) {
-			String readX = shardX.performTransaction(ip, commit, txn);
-			String readY = shardY.performTransaction(ip, commit, txn);
-			String readZ = shardZ.performTransaction(ip, commit, txn);
-			
-			this.clientReadMsgs = readX + readY + readZ;
-			System.out.println("DCHandler clientReadMsgs: " + this.clientReadMsgs);
+			shardX.performTransaction(ip, commit, txn);
+			shardY.performTransaction(ip, commit, txn);
+			shardZ.performTransaction(ip, commit, txn);
 		}
 		
 		/*
@@ -332,8 +329,8 @@ public class DataCenter extends Thread {
 			 */
 			Socket s;
 			try {
-				msg += " " + clientReadMsgs;
-				System.out.println("Sending to client " + clientIp);
+				msg += " " + shardX.readValues + shardY.readValues + shardZ.readValues;
+				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, 3000);
 				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
 				socketOut.println(msg);
