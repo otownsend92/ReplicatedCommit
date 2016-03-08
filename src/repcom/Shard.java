@@ -23,6 +23,8 @@ public class Shard {
     //indexed by variable name (a,b,c...)
 	Map<String, Lock> lockTable;
 	Map<String, Integer> data;
+	
+	String readValues;
 
 	public Shard() { 
 		lockTable = new HashMap<String, Lock>();
@@ -48,22 +50,40 @@ public class Shard {
      * @return: true if it can gather all locks.
      */
     public boolean processTransaction(String clientIp, String rawTransaction) {
-        List<Transaction> trans = tokenizeTransaction(rawTransaction); 
+        List<Transaction> trans = tokenizeTransaction(rawTransaction);
+        boolean firstInsert = true;
+        StringBuilder sb = new StringBuilder();
+        
         for(Transaction tran:trans) {
             System.out.println("Shard: " + tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
+            
+            String key = tran.getVariable();
+            if(tran.isRead()) {
+                //if reads, save all the reads
+            	Integer value = data.get(key);
+            	if(value == null)
+            		continue;
+            	if(firstInsert == true) {
+            		firstInsert = false;
+            	} else {
+            		sb.append(", ");
+            	}
+            	sb.append(key + " = " + value.toString());
+            }
         }
 
+        //at this point, gather all the read values
+        readValues = sb.toString();
+        
         return gatherLocks(clientIp, trans);
     }
 
     /**
      * Phase 2 of two phase commit - ACTUALLY perform the transaction, or reject it
-     * either peforms the transaction or it doesn't
+     * either performs the transaction or it doesn't
      * releases all locks
      */
-    public String performTransaction(String clientIp, boolean canCommit, String rawTransaction) {
-    	StringBuilder sb = new StringBuilder();
-    	boolean firstInsert = true;
+    public void performTransaction(String clientIp, boolean canCommit, String rawTransaction) {
     	
         if(canCommit) {
             List<Transaction> trans = tokenizeTransaction(rawTransaction);
@@ -76,26 +96,13 @@ public class Shard {
                     //ASSUMING NO INSERTS
                     Integer value = tran.getWriteValue();
                     data.put(key, value);
-                } else {
-                    //if reads, save all the reads
-                	Integer value = data.get(key);
-                	if(value == null)
-                		continue;
-                	if(firstInsert == true) {
-                		firstInsert = false;
-                	} else {
-                		sb.append(", ");
-                	}
-                	sb.append(key + " = " + value.toString());
-                }
+                } 
+                //we already returned read values in processTransaction
             }
         }
 
         //whether we can or can't commit, now we release all the locks
         releaseLocks(clientIp);
-        
-        //return read values - if any
-        return sb.toString();
 
     }
 
