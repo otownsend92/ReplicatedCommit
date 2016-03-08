@@ -79,6 +79,8 @@ public class Shard {
                 } else {
                     //if reads, save all the reads
                 	Integer value = data.get(key);
+                	if(value == null)
+                		continue;
                 	if(firstInsert == true) {
                 		firstInsert = false;
                 	} else {
