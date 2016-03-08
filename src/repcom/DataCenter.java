@@ -88,11 +88,13 @@ public class DataCenter extends Thread {
 		
 		private Socket socket;
 		private DataCenter parentThread;
+		private String clientReadMsgs;
 		
 		public DCHandlerThread(DataCenter t, Socket s){
 //			System.out.println("New DCHandlerThread");
 			socket = s;
 			parentThread = t;
+			clientReadMsgs = "";
 		}
 		
 		// Open up socket that was passed in from DataCenter
@@ -289,9 +291,11 @@ public class DataCenter extends Thread {
 		}
 		
 		private void performTxn(boolean commit, String txn, String ip) {
-			shardX.performTransaction(ip, commit, txn);
-			shardY.performTransaction(ip, commit, txn);
-			shardZ.performTransaction(ip, commit, txn);
+			String readX = shardX.performTransaction(ip, commit, txn);
+			String readY = shardY.performTransaction(ip, commit, txn);
+			String readZ = shardZ.performTransaction(ip, commit, txn);
+			
+			clientReadMsgs = readX + readY + readZ;
 		}
 		
 		/*
@@ -327,6 +331,7 @@ public class DataCenter extends Thread {
 			 */
 			Socket s;
 			try {
+				msg += " " + clientReadMsgs;
 				System.out.println("Sending to client " + clientIp);
 				s = new Socket(clientIp, 3000);
 				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
