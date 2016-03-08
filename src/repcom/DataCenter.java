@@ -92,9 +92,9 @@ public class DataCenter extends Thread {
 		
 		public DCHandlerThread(DataCenter t, Socket s){
 //			System.out.println("New DCHandlerThread");
-			socket = s;
-			parentThread = t;
-			clientReadMsgs = "";
+			this.socket = s;
+			this.parentThread = t;
+			this.clientReadMsgs = "";
 		}
 		
 		// Open up socket that was passed in from DataCenter
@@ -295,7 +295,8 @@ public class DataCenter extends Thread {
 			String readY = shardY.performTransaction(ip, commit, txn);
 			String readZ = shardZ.performTransaction(ip, commit, txn);
 			
-			clientReadMsgs = readX + readY + readZ;
+			this.clientReadMsgs = readX + readY + readZ;
+			System.out.println("DCHandler clientReadMsgs: " + this.clientReadMsgs);
 		}
 		
 		/*
