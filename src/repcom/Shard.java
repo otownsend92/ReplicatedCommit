@@ -167,15 +167,17 @@ public class Shard {
                 List<String> lockIp = lock.getClientIp();
 
                 if(tran.isRead()) { //processing read transaction
-                    if(lockStatus == WRITE) { //write lock has been acquired (doesn't matter by who),  we can't get our read lock
+                    if(lockStatus == WRITE && !lockIp.contains(clientIp)) { //write lock has been acquired (by someone else),  we can't get our read lock
                         return false; 
                     }
-
-                    //acquire read lock
-                    lock.addClientIp(clientIp); 
-                    lock.setLockStatus(READ);
+                    
+                    if(lockStatus == UNLOCKED){
+	                    //acquire read lock
+	                    lock.addClientIp(clientIp); 
+	                    lock.setLockStatus(READ);
+                    }
                 } else { //processing write transaction
-                    if(lockStatus == WRITE && !lockIp.contains(clientIp)) { //write lock has been acquired by someone else,  we can't get our read lock
+                    if(lockStatus == WRITE && !lockIp.contains(clientIp)) { //write lock has been acquired by someone else,  we can't get our write lock
                         return false; 
                     } else if(lockStatus == WRITE && lockIp.contains(clientIp)) { //we got the write lock already
                         continue;
