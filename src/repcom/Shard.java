@@ -111,6 +111,7 @@ public class Shard {
             String key = pair.getKey();
             Lock value = pair.getValue();
             value.removeClientIp(clientIp);
+            lockTable.put(key, value);
         }
     }
 
