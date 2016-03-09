@@ -26,11 +26,12 @@ public class ClientConnection implements Runnable{
         client = c;
     }
 
+
     public Boolean initConnection(){
         try{
             serverSocket = new Socket();
             serverSocket.connect(new InetSocketAddress(host, port), 5*1000); //try connecting to the socket for x milliseconds, then timeout
-            
+
             out = new PrintWriter(serverSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
             
@@ -47,23 +48,12 @@ public class ClientConnection implements Runnable{
 
     public void run(){
         if(initConnection()) {
-            listen();
-        }
-    }
-
-    public void listen(){
-        System.out.println("Client listening for server messages...");
-        String fromServer = "";
-        try {
-            while ((fromServer = in.readLine()) != null) {
-                client.receivedMessage(host, fromServer);
-            }
-        }catch(IOException e){
-            System.out.println("Error listening:" + e);
+           // listen();
         }
     }
 
     public void sendMessage(String msg){
+        initConnection();
         System.out.println("Client sent:" + msg);
         out.println(msg); //TODO: when dataCenter is disconnected, this returns a nullpointer
     }

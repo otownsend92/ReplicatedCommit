@@ -3,21 +3,26 @@ package repcom;
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DBException;
 import com.yahoo.ycsb.Status;
-import java.util.*;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.*;
+import java.util.concurrent.RunnableFuture;
 
 
 /**
  * Created by jhughes on 2/27/16.
  * Test updte
  */
-public class Client extends com.yahoo.ycsb.DB{
+public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     private ArrayList<String> hosts;
     private int portNumber = 3000;
     private HashMap<String, ClientConnection> serverConnections;
     private LinkedList<String> operationQueue;
     private final Object lock = new Object();
+    private ServerSocket serverSocket;
 
     public void initConnections(){
         for (String h: hosts){
@@ -25,14 +30,87 @@ public class Client extends com.yahoo.ycsb.DB{
             serverConnections.put(h, connect);
             new Thread(connect).start();
         }
+
+        try {
+            serverSocket = new ServerSocket(portNumber);
+        }catch(IOException e){
+            System.out.println(e.toString());
+        }
+        //listen();
+        new Thread(this).start();
     }
 
-    public void receivedMessage(String host, String msg){
-        System.out.println("Received message from: " + host + " msg: " + msg);
-        synchronized(lock) {
-            lock.notify();
+    public void run() {
+        System.out.println("Client listening on port " + portNumber + "...");
+
+        while(true) {
+            // Accept incoming client connections
+            Socket incomingSocket = null;
+            try {
+                incomingSocket = serverSocket.accept();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(incomingSocket != null)
+                new Thread(new ClientHandlerThread(this, incomingSocket)).start();
+            else {
+                System.out.println("Client failed to connect to server in run().");
+            }
         }
     }
+
+    public class ClientHandlerThread implements Runnable{
+
+        private Socket socket;
+        private Client c;
+
+        public ClientHandlerThread(Client c, Socket s) {
+            this.c = c;
+            this.socket = s;
+        }
+
+        public void run(){
+            try{
+                String input = null;
+                Scanner socketIn = new Scanner(socket.getInputStream());
+                if (socketIn.hasNext()){
+                    input = socketIn.nextLine();
+                }
+                if (input == null){
+                    socketIn.close();
+                    socket.close();
+                    return;
+                }
+                receivedMessage(input);
+                socketIn.close();
+            }
+            catch(IOException e){
+                System.out.println(e.toString());
+            }
+        }
+
+        public void receivedMessage(String msg){
+            System.out.println("Received message from: " +msg);
+            synchronized(c.lock) {
+                c.lock.notify();
+            }
+        }
+    }
+
+   /* public void listen(){
+        System.out.println("Client listening for server messages...");
+        String fromServer = "";
+        try {
+            while ((fromServer = in.readLine()) != null) {
+                this.receivedMessage(host, fromServer);
+            }
+        }catch(IOException e){
+            System.out.println("Error listening:" + e);
+        }
+    }*/
+
+
 
     public void sendMessage(String host, String msg){
         try {
