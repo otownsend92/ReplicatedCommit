@@ -290,6 +290,7 @@ public class DataCenter extends Thread {
 				}
 				catch (IOException e){
 					// ...
+					e.printStackTrace();
 				}
 			}
 			
