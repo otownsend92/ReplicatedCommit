@@ -73,7 +73,10 @@ public class Shard {
         }
 
         //at this point, gather all the read values
-        readValues = sb.toString();
+        synchronized(this) {
+            readValues = sb.toString();
+        }
+        
         
         return gatherLocks(clientIp, trans);
     }
