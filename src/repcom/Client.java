@@ -40,7 +40,7 @@ public class Client extends com.yahoo.ycsb.DB{
             serverConnections.get(host).sendMessage(msg);
         }catch(NullPointerException e){
             System.out.println("Could not get host: " + host);
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 

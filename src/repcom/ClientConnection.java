@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -27,12 +28,18 @@ public class ClientConnection implements Runnable{
 
     public Boolean initConnection(){
         try{
-            serverSocket = new Socket(host, port);
+            serverSocket = new Socket();
+            serverSocket.connect(new InetSocketAddress(host, port), 5*1000); //try connecting to the socket for x milliseconds, then timeout
+            
             out = new PrintWriter(serverSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+            
+            System.out.println("Successfully connected to host: " + host);
             return true;
         }catch(IOException e){
+        	System.out.println("Error connecting to host: " + host);
             System.out.println("Error creating socket:" + e);
+            e.printStackTrace();
             return false;
         }
 
@@ -58,7 +65,7 @@ public class ClientConnection implements Runnable{
 
     public void sendMessage(String msg){
         System.out.println("Client sent:" + msg);
-        out.println(msg);
+        out.println(msg); //TODO: when dataCenter is disconnected, this returns a nullpointer
     }
 
     public PrintWriter getOut(){
