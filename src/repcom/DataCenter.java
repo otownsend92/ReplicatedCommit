@@ -124,7 +124,7 @@ public class DataCenter extends Thread {
 		 */
 		private void processInput(String input) {
 			System.out.println("Received input: " + input);
-			String[] recvMsg = input.split(" ");
+			String[] recvMsg = input.split("!");
 			
 			if(recvMsg.length != 3) {
 				return;
@@ -274,10 +274,10 @@ public class DataCenter extends Thread {
 			
 			// Send to other DCs
 			if(accepted) {
-				msg = "yes " + myIp + " " + txn;
+				msg = "yes!" + myIp + "!" + txn;
 			}
 			else {
-				msg = "no " + myIp + " " + txn;
+				msg = "no!" + myIp + "!" + txn;
 			}
 			
 			for(int i = 0; i < Main.serverHosts.size(); i++){
@@ -296,7 +296,7 @@ public class DataCenter extends Thread {
 			// Send to client by reusing the socket connection that was passed from DCListenerThread
 			Socket s;
 			try {
-				msg += " " + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
+				msg += "!" + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
