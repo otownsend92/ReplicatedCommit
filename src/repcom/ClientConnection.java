@@ -34,8 +34,7 @@ public class ClientConnection implements Runnable{
 
             out = new PrintWriter(serverSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
-            
-            System.out.println("Successfully connected to host: " + host);
+
             return true;
         }catch(IOException e){
         	System.out.println("Error connecting to host: " + host);
@@ -48,6 +47,7 @@ public class ClientConnection implements Runnable{
 
     public void run(){
        initConnection();
+        System.out.println("Successfully connected to host: " + host);
     }
 
     public void sendMessage(String msg){
