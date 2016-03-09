@@ -34,14 +34,13 @@ public class DataCenter extends Thread {
 	Shard shardY;
 	Shard shardZ;
 	
-	// Possibly remove later 
-	int port = 3000;
+	private final int PORT = 3000;
 	
 	
 	// DataCenter constructor
 	public DataCenter(int numShardData, String ip) {
 		try{
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(PORT);
 			
 			myIp = ip;
 			
@@ -61,7 +60,7 @@ public class DataCenter extends Thread {
 	 * Listener thread 
 	 */
 	public void run() {
-		System.out.println("Data center listening on port " + port + "...");
+		System.out.println("Data center listening on port " + PORT + "...");
 		
 		while(true) {
 			
@@ -189,34 +188,6 @@ public class DataCenter extends Thread {
 		
 		
 		/*
-		 * Add this new incoming txn to pendingTxns
-		 */
-		private synchronized void addPendingTxn(String txn) {
-			pendingTxns.put(txn, 0);
-		}
-		
-		/*
-		 * This txn is finished. Remove it from pendingTxns
-		 */
-		private synchronized void removePendingTxn(String txn) {
-			pendingTxns.remove(txn);
-		}
-		
-		/*
-		 * Increment txn quorum counter
-		 */
-		private synchronized void incrementTxnQuorum(String txn) {
-			pendingTxns.put(txn, pendingTxns.get(txn)+3);
-		}
-		
-		/*
-		 * Decrement txn quorum counter
-		 */
-		private synchronized void decrementTxnQuorum(String txn) {
-			pendingTxns.put(txn, pendingTxns.get(txn)-1);
-		}
-		
-		/*
 		 * Check quorum for this txn. If = 3, commit txn
 		 * 
 		 * Return TRUE if txn was successfully committed or aborted (remove txn from pendingTxns)
@@ -243,6 +214,7 @@ public class DataCenter extends Thread {
 			
 			else if(quorumVal == -2) { 
 				// 2 have said "no" ...abort
+				System.out.println("2 have said \"no\" ...abort");
 				performTxn(false, txn, ip);
 				
 				// Return false as in, keep txn in pendingTxns
@@ -263,6 +235,7 @@ public class DataCenter extends Thread {
 			else if(quorumVal == 1) { 
 				// 2 said "no" and 1 said "yes"  ...abort
 				
+				System.out.println("2 said \"no\" and 1 said \"yes\"  ...abort");
 				performTxn(false, txn, ip);
 				return true;
 			}
@@ -281,7 +254,8 @@ public class DataCenter extends Thread {
 				// Either 2 have said "yes" and 1 has said "no" (quorumVal == 5)
 				// OR ... all have said "yes" (quorumVal == 9)
 				
-				// Tell shards to acceot
+				// Tell shards to accept
+				System.out.println("Either 2 have said \"yes\" and 1 has said \"no\" (quorumVal == 5) OR ... all have said \"yes\" (quorumVal == 9)");
 				performTxn(true, txn, ip);
 				return true;
 			}
@@ -290,11 +264,6 @@ public class DataCenter extends Thread {
 			return false;
 		}
 		
-		private void performTxn(boolean commit, String txn, String ip) {
-			shardX.performTransaction(ip, commit, txn);
-			shardY.performTransaction(ip, commit, txn);
-			shardZ.performTransaction(ip, commit, txn);
-		}
 		
 		/*
 		 * Send a broadcast message to all DCs letting
@@ -302,6 +271,8 @@ public class DataCenter extends Thread {
 		 */
 		private void notifyDCsAndClient(boolean accepted, String txn, String clientIp) {
 			String msg = "";
+			
+			// Send to other DCs
 			if(accepted) {
 				msg = "yes " + myIp + " " + txn;
 			}
@@ -311,11 +282,9 @@ public class DataCenter extends Thread {
 			
 			for(int i = 0; i < Main.serverHosts.size(); i++){
 				try{
-					Socket s = new Socket(Main.serverHosts.get(i), 3000);
+					Socket s = new Socket(Main.serverHosts.get(i), PORT);
 					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
-	
 					socketOut.println(msg);
-					
 					socketOut.close();
 					s.close();
 				}
@@ -324,18 +293,16 @@ public class DataCenter extends Thread {
 				}
 			}
 			
-			/*
-			 * Send to client
-			 */
-			Socket s;
+			// Send to client by reusing the socket connection that was passed from DCListenerThread
+			//Socket s;
 			try {
 				msg += " " + shardX.readValues + shardY.readValues + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
-				s = new Socket(clientIp, 3000);
+				//s = new Socket(clientIp, PORT);
 				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
-//				s.close();
+				//s.close();
 				socket.close();
 				System.out.println("Sent " + msg + " to client");
 				
@@ -347,6 +314,45 @@ public class DataCenter extends Thread {
 				e.printStackTrace();
 			}
 			
+		}
+		
+		/*
+		 * Perform transaction in shard
+		 */
+		private void performTxn(boolean commit, String txn, String ip) {
+			shardX.performTransaction(ip, commit, txn);
+			shardY.performTransaction(ip, commit, txn);
+			shardZ.performTransaction(ip, commit, txn);
+		}
+		
+		/*
+		 * Add this new incoming txn to pendingTxns
+		 */
+		private synchronized void addPendingTxn(String txn) {
+			pendingTxns.put(txn, 0);
+			System.out.println("Added " + txn + "from pendingTxns");
+		}
+		
+		/*
+		 * This txn is finished. Remove it from pendingTxns
+		 */
+		private synchronized void removePendingTxn(String txn) {
+			pendingTxns.remove(txn);
+			System.out.println("Removed " + txn + "from pendingTxns \nDone.\n");
+		}
+		
+		/*
+		 * Increment txn quorum counter
+		 */
+		private synchronized void incrementTxnQuorum(String txn) {
+			pendingTxns.put(txn, pendingTxns.get(txn)+3);
+		}
+		
+		/*
+		 * Decrement txn quorum counter
+		 */
+		private synchronized void decrementTxnQuorum(String txn) {
+			pendingTxns.put(txn, pendingTxns.get(txn)-1);
 		}
 	}
 	
