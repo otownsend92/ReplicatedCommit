@@ -1,5 +1,5 @@
 {
   "client_server": "server"
-  "server_id": "0"
+  "server_id": "1"
   "servers":[{"ip":"128.111.84.191"},{"ip":"128.111.84.192"},{"ip":"169.231.104.15"}]
 }
