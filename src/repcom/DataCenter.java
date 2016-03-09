@@ -112,7 +112,7 @@ public class DataCenter extends Thread {
 				}
 				processInput(input);
 				socketIn.close();
-//				socket.close();
+				socket.close();
 			}
 			catch(IOException e){
 				System.out.println(e.toString());
@@ -294,16 +294,16 @@ public class DataCenter extends Thread {
 			}
 			
 			// Send to client by reusing the socket connection that was passed from DCListenerThread
-			//Socket s;
+			Socket s;
 			try {
 				msg += " " + shardX.readValues + shardY.readValues + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
-				//s = new Socket(clientIp, PORT);
+				s = new Socket(clientIp, PORT);
 				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
-				//s.close();
-				socket.close();
+				s.close();
+//				socket.close();
 				System.out.println("Sent " + msg + " to client");
 				
 			} catch (UnknownHostException e) {
