@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.RunnableFuture;
 
 
 /**
@@ -36,7 +35,6 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         }catch(IOException e){
             System.out.println(e.toString());
         }
-        //listen();
         new Thread(this).start();
     }
 
@@ -53,7 +51,6 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
             }
 
             if(incomingSocket != null) {
-                System.out.println("Incoming socket");
                 new Thread(new ClientHandlerThread(this, incomingSocket)).start();
             }
             else {
@@ -99,19 +96,6 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
             }
         }
     }
-
-   /* public void listen(){
-        System.out.println("Client listening for server messages...");
-        String fromServer = "";
-        try {
-            while ((fromServer = in.readLine()) != null) {
-                this.receivedMessage(host, fromServer);
-            }
-        }catch(IOException e){
-            System.out.println("Error listening:" + e);
-        }
-    }*/
-
 
 
     public void sendMessage(String host, String msg){

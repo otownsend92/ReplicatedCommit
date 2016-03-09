@@ -47,9 +47,7 @@ public class ClientConnection implements Runnable{
     }
 
     public void run(){
-        if(initConnection()) {
-           // listen();
-        }
+       initConnection();
     }
 
     public void sendMessage(String msg){
