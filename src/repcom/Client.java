@@ -52,8 +52,10 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
                 e.printStackTrace();
             }
 
-            if(incomingSocket != null)
+            if(incomingSocket != null) {
+                System.out.println("Incoming socket");
                 new Thread(new ClientHandlerThread(this, incomingSocket)).start();
+            }
             else {
                 System.out.println("Client failed to connect to server in run().");
             }
