@@ -60,15 +60,15 @@ public class YCSBWorkload extends Workload {
 	    if(randomTxn == 1) {
 	    	txn = "r,x" + txnReadCountX++
 				+ ",w,x" + txnWriteCountX++ + "," + randomNum1
-				+ ",w,x" + txnWriteCountX + "," + randomNum2
+				+ ",r,z" + txnReadCountZ
 				+ ",w,z" + txnWriteCountZ + "," + randomNum2;
 	    }
 	    
 	    else if(randomTxn == 2) {
 	    	txn = "r,x" + txnReadCountX 
+	    		+ ",r,y" + txnReadCountY
 				+ ",w,y" + txnWriteCountY + "," + randomNum1
-				+ ",r,y" + txnReadCountY 
-				+ ",w,z" + txnWriteCountZ++ + "," + randomNum2;
+				+ ",w,x" + txnWriteCountZ++ + "," + randomNum2;
 	    }
 	    
 	    else if(randomTxn == 3) {
