@@ -299,7 +299,7 @@ public class DataCenter extends Thread {
 				msg += " " + shardX.readValues + shardY.readValues + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
-				PrintWriter socketOut = new PrintWriter(this.socket.getOutputStream(), true);
+				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
 				s.close();
