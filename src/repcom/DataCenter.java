@@ -330,7 +330,7 @@ public class DataCenter extends Thread {
 		 */
 		private synchronized void addPendingTxn(String txn) {
 			pendingTxns.put(txn, 0);
-			System.out.println("Added " + txn + "from pendingTxns");
+			System.out.println("Added " + txn + " to pendingTxns");
 		}
 		
 		/*
@@ -338,7 +338,7 @@ public class DataCenter extends Thread {
 		 */
 		private synchronized void removePendingTxn(String txn) {
 			pendingTxns.remove(txn);
-			System.out.println("Removed " + txn + "from pendingTxns \nDone.\n");
+			System.out.println("Removed " + txn + " from pendingTxns \nDone.\n");
 		}
 		
 		/*
