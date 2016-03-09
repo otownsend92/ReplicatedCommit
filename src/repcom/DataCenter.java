@@ -296,7 +296,7 @@ public class DataCenter extends Thread {
 			// Send to client by reusing the socket connection that was passed from DCListenerThread
 			Socket s;
 			try {
-				msg += " " + shardX.readValues + shardY.readValues + shardZ.readValues;
+				msg += " " + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
