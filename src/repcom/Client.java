@@ -110,10 +110,11 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     @Override
     public Status update(String s, String s1, HashMap<String, ByteIterator> hashMap) {
-
         synchronized(lock) {
             try {
-                this.sendMessage(s, s1);
+                for(String host: serverConnections.keySet()) {
+                    this.sendMessage(host, s1);
+                }
                 lock.wait();
             } catch (InterruptedException e) {
                 System.out.println("Update thread interrupted: " + e);
@@ -157,9 +158,10 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         hosts.clear();
         Properties prop = getProperties();
         Integer numServ = Integer.parseInt(prop.getProperty("NumServ"));
+        System.out.println("Num Servers: " + numServ);
         for (int i=1; i<= numServ; i++){
-            String ip = prop.getProperty("Server" + Integer.toString(numServ));
-            System.out.println("Server " + Integer.toString(numServ) +  ": " + ip );
+            String ip = prop.getProperty("Server" + Integer.toString(i));
+            System.out.println("Server " + Integer.toString(i) +  ": " + ip );
             hosts.add(ip);
         }
         initConnections();
