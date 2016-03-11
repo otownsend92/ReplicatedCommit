@@ -34,7 +34,7 @@ public class DataCenter extends Thread {
 	Shard shardY;
 	Shard shardZ;
 	
-	private final int PORT = 3000;
+	private final int PORT = 3001;
 	
 	
 	// DataCenter constructor
