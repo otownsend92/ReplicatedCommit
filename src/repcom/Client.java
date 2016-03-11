@@ -18,6 +18,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     private ArrayList<String> hosts;
     private int portNumber = 3000;
+    private int serverPortNumber = 3001;
     private HashMap<String, ClientConnection> serverConnections;
     private LinkedList<String> operationQueue;
     private final Object lock = new Object();
@@ -26,7 +27,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     public void initConnections(){
         for (String h: hosts){
-            ClientConnection connect = new ClientConnection(h, portNumber, this);
+            ClientConnection connect = new ClientConnection(h, serverPortNumber, this);
             serverConnections.put(h, connect);
             new Thread(connect).start();
         }
