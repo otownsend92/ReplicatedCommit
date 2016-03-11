@@ -22,6 +22,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
     private LinkedList<String> operationQueue;
     private final Object lock = new Object();
     private ServerSocket serverSocket;
+    private String clientIP = "";
 
     public void initConnections(){
         for (String h: hosts){
@@ -113,7 +114,8 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         synchronized(lock) {
             try {
                 for(String host: serverConnections.keySet()) {
-                    this.sendMessage(host, s1);
+                    String msg = "accept!" + clientIP + "!" + s1;
+                    this.sendMessage(host, msg);
                 }
                 lock.wait();
             } catch (InterruptedException e) {
@@ -135,15 +137,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     @Override
     public Status read(String s, String s1, Set<String> set, HashMap<String, ByteIterator> hashMap) {
-        synchronized(lock) {
-            try {
-                this.sendMessage(s, s1);
-                lock.wait();
-            } catch (InterruptedException e) {
-                System.out.println("Read thread interrupted: " + e);
-            }
-        }
-        return Status.OK;
+        return Status.BAD_REQUEST;
     }
 
     @Override
@@ -158,7 +152,9 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         hosts.clear();
         Properties prop = getProperties();
         Integer numServ = Integer.parseInt(prop.getProperty("NumServ"));
+        clientIP = prop.getProperty("ClientIP");
         System.out.println("Num Servers: " + numServ);
+        System.out.println("Client IP: " + clientIP);
         for (int i=1; i<= numServ; i++){
             String ip = prop.getProperty("Server" + Integer.toString(i));
             System.out.println("Server " + Integer.toString(i) +  ": " + ip );
