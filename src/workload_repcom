@@ -16,8 +16,9 @@ histogram.buckets=1000
 NumServ=3
 Server1=128.111.84.191
 Server2=128.111.84.192
-Server3=98.182.16.22
-ClientIP=169.231.117.218
+Server3=128.111.43.14
+ClientIP=169.231.105.66
+
 
 # Granularity for time series (in milliseconds)
 timeseries.granularity=1000
