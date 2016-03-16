@@ -283,6 +283,7 @@ public class DataCenter extends Thread {
 			for(int i = 0; i < Main.serverHosts.size(); i++){
 				try{
 					Socket s = new Socket(Main.serverHosts.get(i), PORT);
+					s.setSoTimeout(1000);
 					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 					socketOut.println(msg);
 					socketOut.close();
@@ -299,6 +300,7 @@ public class DataCenter extends Thread {
 				msg += "!" + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
+				s.setSoTimeout(1000);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
