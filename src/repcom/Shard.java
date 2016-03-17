@@ -127,8 +127,10 @@ public class Shard {
     		synchronized(lockTable) {
     			String key = tran.getVariable();
         		Lock value = lockTable.get(key);
-        		value.removeClientIp(clientIp);
-        		lockTable.put(key, value);
+        		if(value != null) {
+        			value.removeClientIp(clientIp);
+        			lockTable.put(key, value);
+        		}
     		}
     	}
     }
