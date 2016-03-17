@@ -123,7 +123,7 @@ public class DataCenter extends Thread {
 		 * Parse incoming string from client socket
 		 */
 		private void processInput(String input) {
-			System.out.println("Received input: " + input);
+			//System.out.println("Received input: " + input);
 			String[] recvMsg = input.split("!");
 			
 			if(recvMsg.length != 3) {
@@ -214,7 +214,7 @@ public class DataCenter extends Thread {
 			
 			else if(quorumVal == -2) { 
 				// 2 have said "no" ...abort
-				System.out.println("2 have said \"no\" ...abort");
+				//System.out.println("2 have said \"no\" ...abort");
 				performTxn(false, txn, ip);
 				
 				// Return false as in, keep txn in pendingTxns
@@ -235,7 +235,7 @@ public class DataCenter extends Thread {
 			else if(quorumVal == 1) { 
 				// 2 said "no" and 1 said "yes"  ...abort
 				
-				System.out.println("2 said \"no\" and 1 said \"yes\"  ...abort");
+				//System.out.println("2 said \"no\" and 1 said \"yes\"  ...abort");
 				performTxn(false, txn, ip);
 				return true;
 			}
@@ -255,7 +255,7 @@ public class DataCenter extends Thread {
 				// OR ... all have said "yes" (quorumVal == 9)
 				
 				// Tell shards to accept
-				System.out.println("Either 2 have said \"yes\" and 1 has said \"no\" (quorumVal == 5) OR ... all have said \"yes\" (quorumVal == 9)");
+				//System.out.println("Either 2 have said \"yes\" and 1 has said \"no\" (quorumVal == 5) OR ... all have said \"yes\" (quorumVal == 9)");
 				performTxn(true, txn, ip);
 				return true;
 			}
@@ -298,7 +298,7 @@ public class DataCenter extends Thread {
 			Socket s;
 			try {
 				msg += "!" + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
-				System.out.println("Sending to client " + clientIp + ": " + msg);
+				//System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
 				s.setSoTimeout(1000);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
@@ -306,7 +306,7 @@ public class DataCenter extends Thread {
 				socketOut.close();
 				s.close();
 //				socket.close();
-				System.out.println("Sent " + msg + " to client");
+				//System.out.println("Sent " + msg + " to client");
 				
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -332,7 +332,7 @@ public class DataCenter extends Thread {
 		 */
 		private synchronized void addPendingTxn(String txn) {
 			pendingTxns.put(txn, 0);
-			System.out.println("Added " + txn + " to pendingTxns");
+			//System.out.println("Added " + txn + " to pendingTxns");
 		}
 		
 		/*
@@ -345,7 +345,7 @@ public class DataCenter extends Thread {
 			shardY.releaseSpecificLocks(clientIp, txn);
 			shardZ.releaseSpecificLocks(clientIp, txn);
 			
-			System.out.println("Removed " + txn + " from pendingTxns \nDone.\n");
+			//System.out.println("Removed " + txn + " from pendingTxns \nDone.\n");
 		}
 		
 		/*

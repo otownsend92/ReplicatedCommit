@@ -56,7 +56,7 @@ public class Shard {
         StringBuilder sb = new StringBuilder();
         
         for(Transaction tran:trans) {
-            System.out.println("Shard: " + tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
+            //System.out.println("Shard: " + tran.getType() + ", " + tran.getVariable() + ", " + tran.getWriteValue());
             
             String key = tran.getVariable();
             if(tran.isRead()) {
@@ -147,7 +147,7 @@ public class Shard {
             if(type.equals("r")) {
                 String variable = (String)st.nextElement();
                 if(variable == null) {
-                    System.out.println("read is wrong");
+                   // System.out.println("read is wrong");
                     return null;
                 }
                 Transaction tran = new Transaction(type, variable, 0);
@@ -156,12 +156,12 @@ public class Shard {
             } else if(type.equals("w")) {
                 String variable = (String)st.nextElement();
                 if(variable == null) {
-                    System.out.println("write is wrong");
+                   // System.out.println("write is wrong");
                     return null;
                 }
                 String write = (String)st.nextElement();
                 if(write == null) {
-                    System.out.println("write is wrong");
+                   // System.out.println("write is wrong");
                     return null;
                 }
                 int writeValue = Integer.parseInt(write);
@@ -169,7 +169,7 @@ public class Shard {
                 Transaction tran = new Transaction(type, variable, writeValue);
                 trans.add(tran);
             } else {
-                System.out.println("bro wtf");
+                //System.out.println("bro wtf");
                 return null;
             }
         }

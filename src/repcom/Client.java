@@ -91,7 +91,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         }
 
         public void receivedMessage(String msg){
-            System.out.println("Received message from: " +msg);
+            //System.out.println("Received message from: " +msg);
             synchronized(c.lock) {
                 c.lock.notify();
             }
@@ -101,7 +101,7 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
 
     public void sendMessage(String host, String msg){
         try {
-            System.out.println("Sending message to: " + host + " msg: " + msg);
+            //System.out.println("Sending message to: " + host + " msg: " + msg);
             serverConnections.get(host).sendMessage(msg);
         }catch(NullPointerException e){
             System.out.println("Could not get host: " + host);
@@ -153,11 +153,11 @@ public class Client extends com.yahoo.ycsb.DB implements Runnable{
         Properties prop = getProperties();
         Integer numServ = Integer.parseInt(prop.getProperty("NumServ"));
         clientIP = prop.getProperty("ClientIP");
-        System.out.println("Num Servers: " + numServ);
-        System.out.println("Client IP: " + clientIP);
+        //System.out.println("Num Servers: " + numServ);
+        //System.out.println("Client IP: " + clientIP);
         for (int i=1; i<= numServ; i++){
             String ip = prop.getProperty("Server" + Integer.toString(i));
-            System.out.println("Server " + Integer.toString(i) +  ": " + ip );
+            //System.out.println("Server " + Integer.toString(i) +  ": " + ip );
             hosts.add(ip);
         }
         initConnections();
