@@ -30,7 +30,7 @@ public class ClientConnection implements Runnable{
     public Boolean initConnection(){
         try{
             serverSocket = new Socket();
-            serverSocket.connect(new InetSocketAddress(host, port), 5*1000); //try connecting to the socket for x milliseconds, then timeout
+            serverSocket.connect(new InetSocketAddress(host, port), 1000); //try connecting to the socket for x milliseconds, then timeout
 
             out = new PrintWriter(serverSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));

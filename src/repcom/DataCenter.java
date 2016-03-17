@@ -130,7 +130,7 @@ public class DataCenter extends Thread {
 				return;
 			}
 			
-			String ipAddr = recvMsg[1];
+			String clientIp = recvMsg[1];
 			String txn = recvMsg[2];
 			
 			if (recvMsg[0].equals("accept")) {
@@ -139,20 +139,20 @@ public class DataCenter extends Thread {
 				addPendingTxn(txn);
 				
 				// Start 2PC
-				boolean xGood = shardX.processTransaction(ipAddr, txn);
-				boolean yGood = shardY.processTransaction(ipAddr, txn);
-				boolean zGood = shardZ.processTransaction(ipAddr, txn);
+				boolean xGood = shardX.processTransaction(clientIp, txn);
+				boolean yGood = shardY.processTransaction(clientIp, txn);
+				boolean zGood = shardZ.processTransaction(clientIp, txn);
 				
 				if (xGood && yGood && zGood) {
 					// All shards agreed and there are no conflicting locks
 					// Move forward with transaction and inform other DCs 
 					// that you accept the Paxos request
-					notifyDCsAndClient(true, txn, ipAddr);
+					notifyDCsAndClient(true, txn, clientIp);
 				}
 				
 				else {
 					// One of the shards found a lock conflict and rejected the request
-					notifyDCsAndClient(false, txn, ipAddr);
+					notifyDCsAndClient(false, txn, clientIp);
 				}
 				
 				
@@ -167,8 +167,8 @@ public class DataCenter extends Thread {
 						addPendingTxn(txn);
 					
 					incrementTxnQuorum(txn);
-					if(checkQuorum(txn, ipAddr))
-						removePendingTxn(txn);
+					if(checkQuorum(txn, clientIp))
+						removePendingTxn(clientIp, txn);
 				}
 			}
 			
@@ -180,8 +180,8 @@ public class DataCenter extends Thread {
 						addPendingTxn(txn); 
 					
 					decrementTxnQuorum(txn);
-					if(checkQuorum(txn, ipAddr))
-						removePendingTxn(txn);
+					if(checkQuorum(txn, clientIp))
+						removePendingTxn(clientIp, txn);
 				}
 			}
 		}
@@ -283,6 +283,7 @@ public class DataCenter extends Thread {
 			for(int i = 0; i < Main.serverHosts.size(); i++){
 				try{
 					Socket s = new Socket(Main.serverHosts.get(i), PORT);
+					s.setSoTimeout(1000);
 					PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 					socketOut.println(msg);
 					socketOut.close();
@@ -299,6 +300,7 @@ public class DataCenter extends Thread {
 				msg += "!" + shardX.readValues + "," + shardY.readValues + "," + shardZ.readValues;
 				System.out.println("Sending to client " + clientIp + ": " + msg);
 				s = new Socket(clientIp, PORT);
+				s.setSoTimeout(1000);
 				PrintWriter socketOut = new PrintWriter(s.getOutputStream(), true);
 				socketOut.println(msg);
 				socketOut.close();
@@ -336,8 +338,13 @@ public class DataCenter extends Thread {
 		/*
 		 * This txn is finished. Remove it from pendingTxns
 		 */
-		private synchronized void removePendingTxn(String txn) {
+		private synchronized void removePendingTxn(String clientIp, String txn) {
 			pendingTxns.remove(txn);
+			//remove the locks
+			shardX.releaseSpecificLocks(clientIp, txn);
+			shardY.releaseSpecificLocks(clientIp, txn);
+			shardZ.releaseSpecificLocks(clientIp, txn);
+			
 			System.out.println("Removed " + txn + " from pendingTxns \nDone.\n");
 		}
 		

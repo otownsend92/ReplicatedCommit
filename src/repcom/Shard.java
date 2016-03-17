@@ -5,6 +5,7 @@ package repcom; /**
 import repcom.Lock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class Shard {
      * Initializes this shard by populating the lockTable and the data Maps
      */
     public Shard(String varName, int numData) {
-		lockTable = new HashMap<String, Lock>();
+		lockTable = Collections.synchronizedMap(new HashMap<String, Lock>());
 		data = new HashMap<String, Integer>();
 
     	for(int i = 0; i < numData; i++) {
@@ -109,13 +110,27 @@ public class Shard {
 
     }
 
-    private void releaseLocks(String clientIp) {
+    public void releaseLocks(String clientIp) {
         for(Map.Entry<String, Lock> pair : lockTable.entrySet()) {
-            String key = pair.getKey();
-            Lock value = pair.getValue();
-            value.removeClientIp(clientIp);
-            lockTable.put(key, value);
+        	synchronized(lockTable) {
+        		String key = pair.getKey();
+                Lock value = pair.getValue();
+                value.removeClientIp(clientIp);
+                lockTable.put(key, value);
+        	}
         }
+    }
+    
+    public void releaseSpecificLocks(String clientIp, String txn) {
+    	List<Transaction> trans = tokenizeTransaction(txn);
+    	for(Transaction tran: trans) {
+    		synchronized(lockTable) {
+    			String key = tran.getVariable();
+        		Lock value = lockTable.get(key);
+        		value.removeClientIp(clientIp);
+        		lockTable.put(key, value);
+    		}
+    	}
     }
 
     /*
