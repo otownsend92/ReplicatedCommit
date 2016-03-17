@@ -52,7 +52,7 @@ public class ClientConnection implements Runnable{
 
     public void sendMessage(String msg){
         initConnection();
-        System.out.println("Client sent:" + msg);
+        //System.out.println("Client sent:" + msg);
         out.println(msg); //TODO: when dataCenter is disconnected, this returns a nullpointer
     }
 
